@@ -38,6 +38,8 @@ ArrayList<Spot> spots;
 List<File> songFiles;
 int songIndex = 0;
 
+boolean isPaused = true;
+
 void setup() {
   minim = new Minim(this);
   selectFolder("Select a file to process:", "folderSelected");
@@ -92,11 +94,14 @@ String getFileExtension(File file) {
 
 void setupSong(File selection) {
   try {
+    isPaused = true;
     song = minim.loadFile(selection.getAbsolutePath());
     meta = song.getMetaData();
     fft = new FFT(song.bufferSize(), song.sampleRate());
+    System.out.println("Playing song " + meta.title());
     song.play();
-  } catch (Exception e) {
+    isPaused = false;
+  } catch (NullPointerException e) {
     try {
       song = minim.loadFile(selection.getAbsolutePath());
       meta = song.getMetaData();
@@ -174,11 +179,12 @@ void draw() {
     text(meta.title() + ", " + meta.author(), 10, height - 20); 
     fill(0, 102, 153);
     
-    if (!song.isPlaying()) {
+    if (!song.isPlaying() && !isPaused) {
       songIndex++;
       if (songIndex == songFiles.size()) {
         songIndex = 0; 
       }
+      song.pause();
       setupSong(songFiles.get(songIndex)); 
     } else if (nextSong) {
       nextSong = false; 
